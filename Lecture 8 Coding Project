@@ -1,0 +1,65 @@
+import numpy as np
+
+# Parameters
+a, b, c, d = 0, 1, 0, 2  # Domain boundaries
+n, m = 20, 40  # Number of grid points in x and y directions
+TOL = 1e-6  # Tolerance for convergence
+N = 1000  # Maximum number of iterations
+h = (b - a) / n  # Grid spacing in x
+k = (d - c) / m  # Grid spacing in y
+lmbda = h**2 / k**2  # ratio of grid spacings
+p = 2 * (1 + lmbda)  
+
+# Mesh points
+x = np.linspace(a, b, n + 1)
+y = np.linspace(c, d, m + 1)
+
+# Boundary conditions
+u = np.zeros((n + 1, m + 1))
+u[:, 0] = x**2  # Bottom boundary
+u[:, -1] = (x - 2)**2  # Top boundary
+u[0, :] = y**2  # Left boundary
+u[-1, :] = (y - 1)**2  # Right boundary
+
+# function
+f = np.full((n - 1, m - 1), 4)  # Right-hand side of the Poisson equation
+
+# Gauss-Seidel iteration
+for iteration in range(1, N + 1):
+    norm = 0  # Initialize convergence measure
+    # Update interior points
+    for i in range(1, n):
+        for j in range(1, m):
+            # Compute new value for u[i, j]
+            z = (
+                -h**2 * f[i - 1, j - 1]
+                + lmbda * (u[i, j - 1] + u[i, j + 1])
+                + u[i - 1, j]
+                + u[i + 1, j]
+            ) / p
+            norm = max(norm, abs(z - u[i, j]))  # Update maximum change
+            u[i, j] = z
+
+    # Check convergence
+    if norm < TOL:
+        print(f"Converged after {iteration} iterations.")
+        break
+else:
+    print("Maximum number of iterations exceeded. Solution may not have converged.")
+
+# Output solution
+print("Solution at grid points:")
+print(u)
+
+# Visualization (optional)
+import matplotlib.pyplot as plt
+
+X, Y = np.meshgrid(x, y, indexing='ij')
+fig = plt.figure(figsize=(10, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(X, Y, u, cmap="viridis")
+ax.set_title("Solution to Poisson Equation")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.set_zlabel("u(x, y)")
+plt.show()
