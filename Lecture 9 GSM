@@ -1,0 +1,46 @@
+import numpy as np
+import time
+
+# Input
+A = np.array([[4, -1, 0, 0],
+              [-1, 4, -1, 0],
+              [0, -1, 4, -1],
+              [0, 0, -1, 3]], dtype=float)
+b = np.array([15, 10, 10, 10], dtype=float)
+
+start_time = time.time()
+solution_direct = np.linalg.solve(A, b)
+direct_solve_time = time.time() - start_time
+
+print("(np.linalg.solve):", solution_direct)
+print(f"CPU Time (Direct Solver): {direct_solve_time:.6f} seconds\n")
+
+def gauss_seidel(A, b, tol=1e-6, max_iterations=100):
+    n = len(b)
+    x = np.zeros_like(b)  # Initial guess
+    print("Iterative Convergence:")
+
+    for iteration in range(1, max_iterations + 1):
+        x_old = np.copy(x)  # Copy the current solution
+        for i in range(n):
+            sum_ax = sum(A[i, j] * x[j] for j in range(n) if j != i)
+            x[i] = (b[i] - sum_ax) / A[i, i]
+
+        # Compute and print the norm of the difference to track convergence
+        diff_norm = np.linalg.norm(x - x_old, ord=np.inf)
+        print(f"Iteration {iteration}: x = {x}, diff_norm = {diff_norm:.6e}")
+
+        # Check for convergence
+        if diff_norm < tol:
+            print("\nConverged successfully.")
+            return x
+
+    print("\nMaximum iterations reached without convergence.")
+    return x
+
+start_time = time.time()
+solution_iterative = gauss_seidel(A, b)
+iterative_solve_time = time.time() - start_time
+
+print("\nFinal Solution (Gauss-Seidel):", solution_iterative)
+print(f"CPU Time (Iterative Solver): {iterative_solve_time:.6f} seconds")
